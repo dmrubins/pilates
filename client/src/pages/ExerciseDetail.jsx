@@ -25,7 +25,7 @@ function PhotoCarousel({ photos }) {
         <img
           src={`/images/${photos[idx]}`}
           alt={`Step ${idx + 1}`}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
         />
       </div>
       {photos.length > 1 && (

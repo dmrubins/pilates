@@ -26,7 +26,7 @@ export default function ExerciseCard({ exercise, selected, onSelect }) {
           <img
             src={`/images/${photo}`}
             alt={exercise.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             loading="lazy"
           />
         </div>

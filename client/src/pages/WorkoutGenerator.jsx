@@ -28,7 +28,7 @@ function PhotoCarousel({ photos }) {
   return (
     <div className="mb-4 relative">
       <div className="rounded-2xl overflow-hidden aspect-video bg-bg-surface-2">
-        <img src={`/images/${photos[idx]}`} alt="" className="w-full h-full object-cover" />
+        <img src={`/images/${photos[idx]}`} alt="" className="w-full h-full object-contain" />
       </div>
       {photos.length > 1 && (
         <>
