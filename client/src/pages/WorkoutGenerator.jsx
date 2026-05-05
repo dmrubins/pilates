@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { suggestExercises } from '../api/exercises.js';
-import { createSession } from '../api/sessions.js';
+import { createSession, addExercisesToSession } from '../api/sessions.js';
 import ExerciseCard from '../components/ExerciseCard.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
@@ -58,7 +58,8 @@ function parseSteps(text) {
 function ActiveWorkout({ exercises, difficulty, onFinish, onExit }) {
   const navigate = useNavigate();
   const [idx, setIdx] = useState(0);
-  const [done, setDone] = useState([]); // ids of completed exercises
+  const [done, setDone] = useState([]);
+  const [sessionId, setSessionId] = useState(null);
   const [logging, setLogging] = useState(false);
   const [logError, setLogError] = useState(null);
   const [finished, setFinished] = useState(false);
@@ -69,38 +70,39 @@ function ActiveWorkout({ exercises, difficulty, onFinish, onExit }) {
   const steps = parseSteps(ex.instructions);
   const isLast = idx === exercises.length - 1;
 
-  const complete = () => {
-    const newDone = [...done, ex.id];
-    setDone(newDone);
-    if (isLast) {
-      finishWorkout(newDone);
-    } else {
-      setIdx(i => i + 1);
+  const complete = async () => {
+    setLogging(true);
+    setLogError(null);
+    try {
+      if (!sessionId) {
+        const session = await createSession({
+          date: getToday(),
+          notes: `Generated workout — ${difficulty || 'Any'} difficulty`,
+          exercise_ids: [ex.id],
+        });
+        setSessionId(session.id);
+      } else {
+        await addExercisesToSession(sessionId, [ex.id]);
+      }
+      const newDone = [...done, ex.id];
+      setDone(newDone);
+      if (isLast) {
+        setFinished(true);
+      } else {
+        setIdx(i => i + 1);
+      }
+    } catch (e) {
+      setLogError(e.message);
+    } finally {
+      setLogging(false);
     }
   };
 
   const skip = () => {
     if (isLast) {
-      finishWorkout(done);
+      setFinished(true);
     } else {
       setIdx(i => i + 1);
-    }
-  };
-
-  const finishWorkout = async (completedIds) => {
-    if (!completedIds.length) { onFinish(); return; }
-    setLogging(true);
-    setLogError(null);
-    try {
-      await createSession({
-        date: getToday(),
-        notes: `Generated workout — ${difficulty || 'Any'} difficulty · ${completedIds.length}/${exercises.length} exercises`,
-        exercise_ids: completedIds,
-      });
-      setFinished(true);
-    } catch (e) {
-      setLogError(e.message);
-      setLogging(false);
     }
   };
 
@@ -240,6 +242,69 @@ export default function WorkoutGenerator() {
     );
   }
 
+  if (mode === 'results') {
+    return (
+      <div>
+        <div className="flex items-center gap-3 mb-5">
+          <button onClick={() => setMode('setup')}
+            className="flex items-center gap-1.5 text-text-muted text-sm hover:text-text-primary">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+          <h1 className="text-xl font-bold">Generate Workout</h1>
+        </div>
+
+        {loading && <LoadingSpinner text="Finding the best exercises…" />}
+        {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+
+        {result && !loading && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h2 className="font-semibold text-text-primary">
+                  Your Workout
+                  <span className="ml-2 text-accent-light font-normal text-sm">~{result.estimated_minutes} min</span>
+                </h2>
+                <p className="text-text-muted text-xs mt-0.5">
+                  {result.exercises.length} exercise{result.exercises.length !== 1 ? 's' : ''}
+                  {result.estimated_minutes > result.target_minutes + 2
+                    ? ` · ${result.estimated_minutes - result.target_minutes} min over target`
+                    : ''}
+                </p>
+              </div>
+              <button onClick={handleGenerate}
+                className="text-accent-light text-sm border border-accent-glow px-3 py-1.5 rounded-lg hover:bg-accent-glow transition-colors">
+                Shuffle
+              </button>
+            </div>
+
+            {result.exercises.length === 0 ? (
+              <div className="card text-center py-8">
+                <p className="text-text-muted">No exercises found for those filters.</p>
+                <p className="text-text-muted text-sm mt-1">Try adjusting the difficulty or body parts.</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  {result.exercises.map((ex) => (
+                    <ExerciseCard key={ex.id} exercise={ex} />
+                  ))}
+                </div>
+
+                <button onClick={() => setMode('active')} className="btn-primary w-full py-3 text-base mb-3">
+                  ▶ Start Workout
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // mode === 'setup'
   return (
     <div>
       <h1 className="text-xl font-bold mb-5">Generate Workout</h1>
@@ -305,54 +370,8 @@ export default function WorkoutGenerator() {
 
       <button onClick={handleGenerate} disabled={loading}
         className="btn-primary w-full mb-6 text-base py-3">
-        {loading ? 'Generating…' : 'Generate Workout'}
+        Generate Workout
       </button>
-
-      {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
-      {loading && <LoadingSpinner text="Finding the best exercises…" />}
-
-      {/* Results */}
-      {result && !loading && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="font-semibold text-text-primary">
-                Your Workout
-                <span className="ml-2 text-accent-light font-normal text-sm">~{result.estimated_minutes} min</span>
-              </h2>
-              <p className="text-text-muted text-xs mt-0.5">
-                {result.exercises.length} exercise{result.exercises.length !== 1 ? 's' : ''}
-                {result.estimated_minutes > result.target_minutes + 2
-                  ? ` · ${result.estimated_minutes - result.target_minutes} min over target`
-                  : ''}
-              </p>
-            </div>
-            <button onClick={handleGenerate}
-              className="text-accent-light text-sm border border-accent-glow px-3 py-1.5 rounded-lg hover:bg-accent-glow transition-colors">
-              Shuffle
-            </button>
-          </div>
-
-          {result.exercises.length === 0 ? (
-            <div className="card text-center py-8">
-              <p className="text-text-muted">No exercises found for those filters.</p>
-              <p className="text-text-muted text-sm mt-1">Try adjusting the difficulty or body parts.</p>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                {result.exercises.map((ex) => (
-                  <ExerciseCard key={ex.id} exercise={ex} />
-                ))}
-              </div>
-
-              <button onClick={() => setMode('active')} className="btn-primary w-full py-3 text-base mb-3">
-                ▶ Start Workout
-              </button>
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 }

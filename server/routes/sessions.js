@@ -70,6 +70,26 @@ router.post('/', (req, res) => {
   }
 });
 
+router.patch('/:id/exercises', (req, res) => {
+  const { exercise_ids } = req.body;
+  if (!Array.isArray(exercise_ids) || !exercise_ids.length) {
+    return res.status(400).json({ error: 'exercise_ids required' });
+  }
+  const session = db.prepare('SELECT id FROM sessions WHERE id = ?').get(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Not found' });
+
+  const insertLink = db.prepare('INSERT INTO session_exercises (session_id, exercise_id) VALUES (?, ?)');
+  try {
+    db.transaction(() => {
+      for (const eid of exercise_ids) insertLink.run(req.params.id, eid);
+    })();
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.delete('/:id', (req, res) => {
   try {
     const info = db.prepare('DELETE FROM sessions WHERE id = ?').run(req.params.id);
