@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useExercises, useBodyParts } from '../hooks/useExercises.js';
 import ExerciseCard from '../components/ExerciseCard.jsx';
 import FilterBar from '../components/FilterBar.jsx';
@@ -10,8 +9,8 @@ export default function ExerciseBrowser() {
   const bodyParts = useBodyParts();
 
   const filters = {
-    body_part: searchParams.get('body_part') || undefined,
-    ease: searchParams.get('ease') ? parseInt(searchParams.get('ease')) : undefined,
+    difficulty:   searchParams.get('difficulty') || undefined,
+    body_part:    searchParams.get('body_part') || undefined,
     max_duration: searchParams.get('max_duration') ? parseInt(searchParams.get('max_duration')) : undefined,
   };
 
@@ -19,15 +18,19 @@ export default function ExerciseBrowser() {
 
   const setFilters = (next) => {
     const params = {};
-    if (next.body_part) params.body_part = next.body_part;
-    if (next.ease) params.ease = String(next.ease);
+    if (next.difficulty)   params.difficulty = next.difficulty;
+    if (next.body_part)    params.body_part = next.body_part;
     if (next.max_duration) params.max_duration = String(next.max_duration);
     setSearchParams(params, { replace: true });
   };
 
   return (
     <div>
-      <h1 className="text-xl font-bold mb-4">Exercises</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-bold">Exercises</h1>
+        <Link to="/exercises/new" className="btn-primary text-sm py-1.5 px-3">+ New</Link>
+      </div>
+
       <FilterBar filters={filters} onChange={setFilters} bodyParts={bodyParts} />
 
       {loading && <LoadingSpinner />}
@@ -35,7 +38,8 @@ export default function ExerciseBrowser() {
 
       {!loading && !error && exercises.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-text-muted">No exercises match your filters.</p>
+          <p className="text-text-muted mb-3">No exercises match your filters.</p>
+          <Link to="/exercises/new" className="btn-primary inline-block">Add one</Link>
         </div>
       )}
 

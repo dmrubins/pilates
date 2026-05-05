@@ -1,11 +1,16 @@
 CREATE TABLE IF NOT EXISTS exercises (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
-  name            TEXT NOT NULL UNIQUE,
-  body_part       TEXT NOT NULL,
-  duration_minutes INTEGER NOT NULL,
-  ease_level      INTEGER NOT NULL CHECK (ease_level BETWEEN 1 AND 5),
-  description     TEXT,
-  photo_filename  TEXT
+  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  card_number      INTEGER,
+  name             TEXT NOT NULL UNIQUE,
+  body_part        TEXT,
+  difficulty       TEXT,
+  ease_level       INTEGER NOT NULL DEFAULT 3 CHECK (ease_level BETWEEN 1 AND 5),
+  duration_minutes INTEGER,
+  sets             TEXT,
+  reps             TEXT,
+  instructions     TEXT,
+  description      TEXT,
+  photo_filenames  TEXT NOT NULL DEFAULT '[]'
 );
 
 CREATE TABLE IF NOT EXISTS sessions (

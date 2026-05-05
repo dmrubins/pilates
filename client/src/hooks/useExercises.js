@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getExercises, getBodyParts } from '../api/exercises.js';
 
 export function useExercises(filters = {}) {
@@ -8,24 +8,22 @@ export function useExercises(filters = {}) {
 
   const key = JSON.stringify(filters);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     setLoading(true);
     setError(null);
-    getExercises(filters)
+    getExercises(JSON.parse(key))
       .then(setExercises)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [key]);
 
-  return { exercises, loading, error };
+  useEffect(() => { load(); }, [load]);
+
+  return { exercises, loading, error, reload: load };
 }
 
 export function useBodyParts() {
   const [bodyParts, setBodyParts] = useState([]);
-
-  useEffect(() => {
-    getBodyParts().then(setBodyParts).catch(() => {});
-  }, []);
-
+  useEffect(() => { getBodyParts().then(setBodyParts).catch(() => {}); }, []);
   return bodyParts;
 }
