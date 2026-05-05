@@ -98,6 +98,20 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Generate workout CTA */}
+      <Link
+        to="/generate"
+        className="block card bg-gradient-to-r from-accent-glow to-bg-surface border border-accent-glow hover:border-accent transition-colors"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-semibold text-text-primary">Generate a Workout</p>
+            <p className="text-text-muted text-sm mt-0.5">Pick duration, difficulty &amp; body parts</p>
+          </div>
+          <span className="text-2xl">✨</span>
+        </div>
+      </Link>
+
       {/* Suggested exercise */}
       <div>
         <div className="flex items-center justify-between mb-2">

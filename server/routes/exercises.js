@@ -46,6 +46,106 @@ router.get('/', (req, res) => {
   }
 });
 
+// GET /api/exercises/suggest?duration=20&difficulty=Medium&body_parts=Core,Glutes
+router.get('/suggest', (req, res) => {
+  const DEFAULT_MINS = 5;
+  const LEEWAY_MINS  = 7; // allow going over target by this much
+
+  const targetMins   = parseInt(req.query.duration, 10) || 0;
+  const difficulty   = req.query.difficulty || null;
+  const bodyParts    = req.query.body_parts
+    ? req.query.body_parts.split(',').map(s => s.trim()).filter(Boolean)
+    : [];
+
+  const easeMap = { Easy: [1, 2], Medium: [2, 3, 4], Hard: [3, 4, 5] };
+  const easeRange = difficulty ? easeMap[difficulty] || [1, 5] : [1, 5];
+
+  function fetchCandidates(parts, eases) {
+    let sql = 'SELECT * FROM exercises WHERE ease_level IN (' + eases.map(() => '?').join(',') + ')';
+    const params = [...eases];
+    if (parts.length) {
+      sql += ' AND (' + parts.map(() => 'body_part = ?').join(' OR ') + ')';
+      params.push(...parts);
+    }
+    return db.prepare(sql).all(...params);
+  }
+
+  function score(ex) {
+    let s = 0;
+    // Prefer exact difficulty
+    if (difficulty && ex.difficulty === difficulty) s += 10;
+    // Prefer exercises whose body part was requested
+    if (bodyParts.length && bodyParts.includes(ex.body_part)) s += 5;
+    return s;
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function selectExercises(pool) {
+    // Sort by score desc, shuffle within same score tier
+    const scored = pool.map(e => ({ ...e, _score: score(e) }));
+    scored.sort((a, b) => b._score - a._score);
+
+    // Group by score and shuffle each tier
+    const tiers = {};
+    for (const e of scored) {
+      (tiers[e._score] = tiers[e._score] || []).push(e);
+    }
+    const ordered = Object.keys(tiers)
+      .sort((a, b) => b - a)
+      .flatMap(k => shuffle(tiers[k]));
+
+    if (!targetMins) {
+      // No duration: return top 6
+      return { exercises: ordered.slice(0, 6), estimated_minutes: ordered.slice(0, 6).reduce((t, e) => t + (e.duration_minutes || DEFAULT_MINS), 0) };
+    }
+
+    // Fill duration greedily
+    const selected = [];
+    let total = 0;
+    for (const ex of ordered) {
+      const mins = ex.duration_minutes || DEFAULT_MINS;
+      if (total + mins <= targetMins + LEEWAY_MINS) {
+        selected.push(ex);
+        total += mins;
+        if (total >= targetMins) break;
+      }
+    }
+    return { exercises: selected, estimated_minutes: total };
+  }
+
+  try {
+    // Try with filters
+    let pool = fetchCandidates(bodyParts, easeRange);
+
+    // Leeway 1: drop difficulty filter if pool too small
+    if (pool.length < 3 && difficulty) {
+      pool = fetchCandidates(bodyParts, [1, 2, 3, 4, 5]);
+    }
+    // Leeway 2: drop body part filter
+    if (pool.length < 3 && bodyParts.length) {
+      pool = fetchCandidates([], easeRange);
+    }
+    // Leeway 3: all exercises
+    if (pool.length < 3) {
+      pool = db.prepare('SELECT * FROM exercises').all();
+    }
+
+    const { exercises, estimated_minutes } = selectExercises(pool);
+    res.json({ exercises, estimated_minutes, target_minutes: targetMins });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // GET /api/exercises/body-parts
 router.get('/body-parts', (req, res) => {
   try {

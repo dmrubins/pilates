@@ -7,6 +7,7 @@ import ExerciseBrowser from './pages/ExerciseBrowser.jsx';
 import ExerciseDetail from './pages/ExerciseDetail.jsx';
 import ExerciseForm from './pages/ExerciseForm.jsx';
 import WorkoutLogger from './pages/WorkoutLogger.jsx';
+import WorkoutGenerator from './pages/WorkoutGenerator.jsx';
 import History from './pages/History.jsx';
 import Settings from './pages/Settings.jsx';
 
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="exercises/new" element={<ExerciseForm />} />
         <Route path="exercises/:id" element={<ExerciseDetail />} />
         <Route path="exercises/:id/edit" element={<ExerciseForm />} />
+        <Route path="generate" element={<WorkoutGenerator />} />
         <Route path="log" element={<WorkoutLogger />} />
         <Route path="history" element={<History />} />
         <Route path="settings" element={<Settings />} />

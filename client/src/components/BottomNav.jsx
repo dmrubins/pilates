@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 const NAV = [
   { to: '/', label: 'Home', icon: HomeIcon },
   { to: '/exercises', label: 'Exercises', icon: GridIcon },
-  { to: '/log', label: 'Log', icon: PlusIcon },
+  { to: '/generate', label: 'Generate', icon: SparkleIcon },
   { to: '/history', label: 'History', icon: ClockIcon },
   { to: '/settings', label: 'Settings', icon: CogIcon },
 ];
@@ -48,10 +48,10 @@ function GridIcon({ className }) {
   );
 }
 
-function PlusIcon({ className }) {
+function SparkleIcon({ className }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 3l1.5 4.5L11 9l-4.5 1.5L5 15l-1.5-4.5L-1 9l4.5-1.5L5 3zM19 11l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z" />
     </svg>
   );
 }

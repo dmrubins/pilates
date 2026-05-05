@@ -27,6 +27,14 @@ export function deleteExercise(id) {
   return del(`/api/exercises/${id}`);
 }
 
+export function suggestExercises({ duration, difficulty, bodyParts = [] }) {
+  const params = new URLSearchParams();
+  if (duration)             params.set('duration', duration);
+  if (difficulty)           params.set('difficulty', difficulty);
+  if (bodyParts.length)     params.set('body_parts', bodyParts.join(','));
+  return get(`/api/exercises/suggest?${params.toString()}`);
+}
+
 // Create or update — uses FormData to support photo uploads
 async function submitExerciseForm(url, method, data, photoFiles = [], removePhotos = []) {
   const form = new FormData();
