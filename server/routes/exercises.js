@@ -158,6 +158,18 @@ router.get('/body-parts', (req, res) => {
   }
 });
 
+// GET /api/exercises/difficulties
+router.get('/difficulties', (req, res) => {
+  try {
+    const rows = db.prepare(
+      "SELECT DISTINCT difficulty FROM exercises WHERE difficulty IS NOT NULL ORDER BY difficulty"
+    ).all();
+    res.json(rows.map(r => r.difficulty));
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // GET /api/exercises/:id
 router.get('/:id', (req, res) => {
   try {

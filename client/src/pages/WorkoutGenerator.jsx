@@ -2,15 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { suggestExercises } from '../api/exercises.js';
 import { createSession, addExercisesToSession } from '../api/sessions.js';
+import { useBodyParts, useDifficulties } from '../hooks/useExercises.js';
 import ExerciseCard from '../components/ExerciseCard.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
-const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
 const DURATION_OPTIONS = [10, 15, 20, 30, 45, 60];
-const BODY_PART_SUGGESTIONS = [
-  'Core', 'Arms', 'Glutes', 'Back', 'Legs', 'Hips',
-  'Full Body', 'Side Body', 'Quads',
-];
 
 function getToday() {
   return new Date().toISOString().slice(0, 10);
@@ -194,10 +190,12 @@ function ActiveWorkout({ exercises, difficulty, onFinish, onExit }) {
 // ─── Main generator ──────────────────────────────────────────────────────────
 
 export default function WorkoutGenerator() {
+  const availableBodyParts = useBodyParts();
+  const availableDifficulties = useDifficulties();
+
   const [duration, setDuration] = useState(20);
   const [difficulty, setDifficulty] = useState('');
   const [bodyParts, setBodyParts] = useState([]);
-  const [customPart, setCustomPart] = useState('');
 
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -208,12 +206,6 @@ export default function WorkoutGenerator() {
 
   const toggleBodyPart = (part) =>
     setBodyParts(prev => prev.includes(part) ? prev.filter(p => p !== part) : [...prev, part]);
-
-  const addCustomPart = () => {
-    const p = customPart.trim();
-    if (p && !bodyParts.includes(p)) setBodyParts(prev => [...prev, p]);
-    setCustomPart('');
-  };
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -332,7 +324,7 @@ export default function WorkoutGenerator() {
             className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
               difficulty === '' ? 'bg-accent text-white' : 'bg-bg-surface-2 text-text-muted hover:text-text-primary'
             }`}>Any</button>
-          {DIFFICULTIES.map((d) => (
+          {availableDifficulties.map((d) => (
             <button key={d} onClick={() => setDifficulty(d === difficulty ? '' : d)}
               className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
                 difficulty === d ? 'bg-accent text-white' : 'bg-bg-surface-2 text-text-muted hover:text-text-primary'
@@ -346,25 +338,13 @@ export default function WorkoutGenerator() {
         <h2 className="font-semibold text-text-primary mb-3">
           Body Parts <span className="text-text-muted font-normal text-xs">(optional)</span>
         </h2>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {BODY_PART_SUGGESTIONS.map((part) => (
+        <div className="flex flex-wrap gap-2">
+          {availableBodyParts.map((part) => (
             <button key={part} onClick={() => toggleBodyPart(part)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                 bodyParts.includes(part) ? 'bg-accent text-white' : 'bg-bg-surface-2 text-text-muted hover:text-text-primary'
               }`}>{part}</button>
           ))}
-          {bodyParts.filter(p => !BODY_PART_SUGGESTIONS.includes(p)).map((part) => (
-            <button key={part} onClick={() => toggleBodyPart(part)}
-              className="px-3 py-1 rounded-full text-xs font-medium bg-accent text-white">
-              {part} ×
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input className="input text-sm py-1.5 flex-1" placeholder="Add custom body part…"
-            value={customPart} onChange={(e) => setCustomPart(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addCustomPart()} />
-          <button onClick={addCustomPart} className="btn-ghost text-sm px-3 py-1.5">Add</button>
         </div>
       </section>
 
