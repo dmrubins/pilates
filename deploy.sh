@@ -23,6 +23,9 @@ echo "==> Syncing built files..."
 rsync -a --delete client/dist/ "$APP_DIR/client/dist/"
 rsync -a client/public/images/ "$APP_DIR/client/public/images/"
 
+echo "==> Updating nginx config..."
+sudo cp nginx.conf /etc/nginx/sites-enabled/pilates
+
 echo "==> Restarting server with PM2..."
 pm2 restart torque-tension 2>/dev/null || \
   pm2 start server/index.js --name torque-tension --cwd "$(pwd)"
