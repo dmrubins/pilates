@@ -4,6 +4,7 @@ const NAV = [
   { to: '/', label: 'Home', icon: HomeIcon },
   { to: '/exercises', label: 'Exercises', icon: GridIcon },
   { to: '/generate', label: 'Generate', icon: SparkleIcon },
+  { to: '/collections', label: 'Saved', icon: BookmarkIcon },
   { to: '/history', label: 'History', icon: ClockIcon },
   { to: '/settings', label: 'Settings', icon: CogIcon },
 ];
@@ -60,6 +61,14 @@ function ClockIcon({ className }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function BookmarkIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
     </svg>
   );
 }

@@ -48,7 +48,7 @@ router.get('/', (req, res) => {
 
 // GET /api/exercises/suggest?duration=20&difficulty=Medium&body_parts=Core,Glutes
 router.get('/suggest', (req, res) => {
-  const DEFAULT_MINS = 5;
+  const DEFAULT_MINS = 2.5;
   const LEEWAY_MINS  = 7; // allow going over target by this much
 
   const targetMins   = parseInt(req.query.duration, 10) || 0;

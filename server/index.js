@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth');
 const exercisesRoutes = require('./routes/exercises');
 const sessionsRoutes = require('./routes/sessions');
 const pushRoutes = require('./routes/push');
+const collectionsRoutes = require('./routes/collections');
 const { initPushScheduler } = require('./services/pushScheduler');
 
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/exercises', authMiddleware, exercisesRoutes);
 app.use('/api/sessions', authMiddleware, sessionsRoutes);
 app.use('/api/push', authMiddleware, pushRoutes);
+app.use('/api/collections', authMiddleware, collectionsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
