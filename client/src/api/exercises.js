@@ -23,6 +23,10 @@ export function getBodyParts() {
   return get('/api/exercises/body-parts');
 }
 
+export function getDifficulties() {
+  return get('/api/exercises/difficulties');
+}
+
 export function deleteExercise(id) {
   return del(`/api/exercises/${id}`);
 }
