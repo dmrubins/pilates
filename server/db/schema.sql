@@ -35,5 +35,20 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
   created_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS collections (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  name       TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS collection_exercises (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  collection_id INTEGER NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+  exercise_id   INTEGER NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
+  sort_order    INTEGER NOT NULL DEFAULT 0,
+  UNIQUE(collection_id, exercise_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_sessions_date ON sessions(date);
 CREATE INDEX IF NOT EXISTS idx_session_exercises_session ON session_exercises(session_id);
+CREATE INDEX IF NOT EXISTS idx_collection_exercises_collection ON collection_exercises(collection_id);

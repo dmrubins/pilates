@@ -10,6 +10,7 @@ import WorkoutLogger from './pages/WorkoutLogger.jsx';
 import WorkoutGenerator from './pages/WorkoutGenerator.jsx';
 import History from './pages/History.jsx';
 import Settings from './pages/Settings.jsx';
+import Collections from './pages/Collections.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="generate" element={<WorkoutGenerator />} />
         <Route path="log" element={<WorkoutLogger />} />
         <Route path="history" element={<History />} />
+        <Route path="collections" element={<Collections />} />
         <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
