@@ -5,7 +5,7 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 const EMPTY = {
   name: '', body_part: '', difficulty: 'Easy',
-  duration_minutes: '', sets: '', reps: '', instructions: '', description: '',
+  duration_minutes: '', sets: '', reps: '', steps: [''], description: '',
 };
 
 export default function ExerciseForm() {
@@ -27,6 +27,7 @@ export default function ExerciseForm() {
     if (!isEdit) return;
     getExercise(id)
       .then((ex) => {
+        const rawSteps = (ex.instructions || '').split('\n').map(s => s.trim()).filter(Boolean);
         setFields({
           name: ex.name || '',
           body_part: ex.body_part || '',
@@ -34,7 +35,7 @@ export default function ExerciseForm() {
           duration_minutes: ex.duration_minutes != null ? String(ex.duration_minutes) : '',
           sets: ex.sets || '',
           reps: ex.reps || '',
-          instructions: ex.instructions || '',
+          steps: rawSteps.length ? rawSteps : [''],
           description: ex.description || '',
         });
         let photos = [];
@@ -81,7 +82,7 @@ export default function ExerciseForm() {
       duration_minutes: fields.duration_minutes ? fields.duration_minutes : '',
       sets: fields.sets.trim(),
       reps: fields.reps.trim(),
-      instructions: fields.instructions.trim(),
+      instructions: fields.steps.map(s => s.trim()).filter(Boolean).join('\n'),
       description: fields.description.trim(),
     };
 
@@ -201,14 +202,37 @@ export default function ExerciseForm() {
         </div>
 
         <div>
-          <label className="block text-sm text-text-muted mb-1">Instructions</label>
-          <textarea
-            className="input resize-none"
-            rows={6}
-            placeholder="Step-by-step instructions…"
-            value={fields.instructions}
-            onChange={(e) => set('instructions', e.target.value)}
-          />
+          <label className="block text-sm text-text-muted mb-2">Instructions</label>
+          <div className="space-y-2">
+            {fields.steps.map((step, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent-glow text-accent-light text-xs flex items-center justify-center mt-2.5">{i + 1}</span>
+                <textarea
+                  className="input resize-none flex-1"
+                  rows={2}
+                  placeholder={`Step ${i + 1}…`}
+                  value={step}
+                  onChange={(e) => {
+                    const updated = [...fields.steps];
+                    updated[i] = e.target.value;
+                    set('steps', updated);
+                  }}
+                />
+                {fields.steps.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => set('steps', fields.steps.filter((_, j) => j !== i))}
+                    className="mt-2 text-text-muted hover:text-red-400 text-lg leading-none"
+                  >×</button>
+                )}
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => set('steps', [...fields.steps, ''])}
+            className="mt-2 text-sm text-accent hover:text-accent-light"
+          >+ Add step</button>
         </div>
 
         <div>

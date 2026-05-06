@@ -55,11 +55,7 @@ function PhotoCarousel({ photos }) {
 
 function parseInstructions(text) {
   if (!text) return [];
-  // Split on numbered steps like "1 " or "1. " at the start of a segment
-  const steps = text.split(/\n/).map(s => s.trim()).filter(Boolean);
-  if (steps.length > 1) return steps;
-  // Try splitting on digit followed by space
-  return text.split(/(?=\d+\s)/).map(s => s.trim()).filter(Boolean);
+  return text.split('\n').map(s => s.trim()).filter(Boolean);
 }
 
 export default function ExerciseDetail() {
@@ -162,7 +158,7 @@ export default function ExerciseDetail() {
                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent-glow text-accent-light text-xs flex items-center justify-center mt-0.5">
                   {i + 1}
                 </span>
-                <span>{step.replace(/^\d+\s*\.?\s*/, '')}</span>
+                <span>{step}</span>
               </li>
             ))}
           </ol>
